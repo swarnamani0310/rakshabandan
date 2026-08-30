@@ -19,7 +19,7 @@ from PIL import Image as PILImage
 # rakshabandan/pics/love.png
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-PHOTO = BASE_DIR / "pics" / "love.png"
+PHOTO = BASE_DIR / pics/love.png
 
 
 def render(go):
