@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 import base64, os
 
-PHOTO = r"C:\Users\M Swarna\Desktop\raksha\pics\love.png"
+PHOTO = "pics/love.png"
 
 def render(go):
     st.markdown('<div class="festive-strip"></div>', unsafe_allow_html=True)
@@ -46,7 +46,7 @@ body {{ background:#1a0a00; display:flex; flex-direction:column; align-items:cen
 <body>
 <div class="bg-glow"></div>
 <div class="content">
-  <p class="eyebrow">chapter four</p>
+  <p class="eyebrow"></p>
   <h1 class="title">Our scrapbook. 📸</h1>
   <p class="sub">One photo. But it holds everything.</p>
   <div class="photo-wrap">{img_tag}</div>
