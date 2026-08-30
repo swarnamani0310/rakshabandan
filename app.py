@@ -54,4 +54,4 @@ elif scene == 3:
 elif scene == 4: 
     from scenes.s9_letter    import render; render(go) 
 elif scene == 5: 
-    from scenes.s10_ending   import render; render(go)    this is my app.py
+    from scenes.s10_ending   import render; render(go)   
