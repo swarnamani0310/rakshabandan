@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rakhi Ceremony</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  body { background: #1a0a00; font-family: 'Lato', sans-serif; }
+
+  /* ── glow background ── */
+  .bg-glow {
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(192,68,90,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 20%, rgba(212,168,67,0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 60% at 50% 100%, rgba(43,18,0,0.7) 0%, transparent 70%);
+  }
+
+  /* ── hands stage ── */
+  #hands-wrap {
+    position: relative;
+    width: min(560px, 94vw);
+    height: min(340px, 58vw);
+    margin: 0 auto;
+    filter: drop-shadow(0 30px 60px rgba(0,0,0,0.6));
+  }
+
+  /* man's hand — right, palm up */
+  #mans-hand {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 52%;
+    transition: filter 0.6s ease;
+  }
+  #mans-hand.glowing {
+    filter: drop-shadow(0 0 18px rgba(212,168,67,0.55));
+  }
+
+  /* girl's hand — enters from left */
+  #girls-hand {
+    position: absolute;
+    bottom: 18px; left: 0;
+    width: 54%;
+    transform: translateX(-120%) rotate(12deg);
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+  #girls-hand.approach {
+    transition: transform 2s cubic-bezier(.22,.61,.36,1), opacity 1.4s ease;
+    transform: translateX(2%) rotate(0deg);
+    opacity: 1;
+  }
+  #girls-hand.retreat {
+    transition: transform 1.4s cubic-bezier(.22,.61,.36,1), opacity 1s ease 0.3s;
+    transform: translateX(-130%) rotate(14deg);
+    opacity: 0;
+  }
+
+  /* rakhi on wrist */
+  #rakhi-tied {
+    position: absolute;
+    bottom: 86px; right: 21%;
+    width: 11%;
+    opacity: 0;
+    transform: scale(0.2) rotate(-20deg);
+    transition: opacity 0.8s ease, transform 0.8s cubic-bezier(.34,1.56,.64,1);
+    pointer-events: none;
+  }
+  #rakhi-tied.show { opacity: 1; transform: scale(1) rotate(0deg); }
+
+  /* thread on wrist */
+  #thread-wrist {
+    position: absolute;
+    bottom: 74px; right: 9%;
+    width: 29%;
+    opacity: 0;
+    transition: opacity 0.6s ease 0.5s;
+    pointer-events: none;
+  }
+  #thread-wrist.show { opacity: 1; }
+
+  /* sparkles */
+  .sparkle {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    animation: sparkleUp 1.6s ease forwards;
+    font-size: 1.1rem;
+  }
+  @keyframes sparkleUp {
+    0%   { opacity: 0; transform: scale(0.3) translateY(0px); }
+    40%  { opacity: 1; transform: scale(1.3) translateY(-22px); }
+    100% { opacity: 0; transform: scale(0.9) translateY(-44px); }
+  }
+
+  /* tie button */
+  #tie-btn {
+    background: linear-gradient(135deg, rgba(212,168,67,0.12), rgba(192,68,90,0.10));
+    border: 1.5px solid rgba(212,168,67,0.45);
+    color: #f5e6c8;
+    font-family: 'Lato', sans-serif;
+    letter-spacing: 0.14em;
+    border-radius: 999px;
+    padding: 15px 48px;
+    font-size: 1rem;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.4s ease;
+    animation: btnPulse 2.6s ease-in-out infinite;
+  }
+  #tie-btn:hover {
+    background: linear-gradient(135deg, rgba(212,168,67,0.22), rgba(192,68,90,0.18));
+    border-color: #d4a843;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(212,168,67,0.2);
+    animation: none;
+  }
+  #tie-btn:disabled { opacity: 0.3; cursor: default; animation: none; transform: none; }
+  @keyframes btnPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(212,168,67,0); }
+    50%      { box-shadow: 0 0 0 14px rgba(212,168,67,0.08); }
+  }
+
+  /* fade-up utility */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1.3s ease, transform 1.3s ease;
+  }
+  .fade-up.show { opacity: 1; transform: none; }
+
+  /* thread divider */
+  .thread-line {
+    width: 110px; height: 2px;
+    background: linear-gradient(90deg, transparent, #d4a843, transparent);
+    border-radius: 2px;
+    margin: 0 auto;
+  }
+
+  /* skin shading helpers */
+  .skin-m  { fill: #b07848; }
+  .skin-ms { fill: #8a5c30; }
+  .skin-mh { fill: rgba(255,220,160,0.18); }
+  .skin-f  { fill: #d4956e; }
+  .skin-fs { fill: #a06840; }
+  .skin-fh { fill: rgba(255,220,180,0.22); }
+  .skin-fd { fill: #c07858; }
+  .nail    { fill: #a02858; }
+  .nail-sh { fill: rgba(255,255,255,0.42); }
+  .mehendi { fill: #6a2e08; }
+  .bangle1 { stroke: #d4a843; }
+  .bangle2 { stroke: #c0445a; }
+  .bangle3 { stroke: #e8732a; }
+  .rakhi-o { fill: #e8732a; }
+  .rakhi-c { fill: #f3cd6e; }
+  .rakhi-p { fill: #c0445a; }
+</style>
+</head>
+<body class="bg-glow min-h-screen flex flex-col items-center justify-center px-4 py-12">
+
+<!-- heading -->
+<div class="text-center mb-2">
+  <p class="text-xs tracking-widest uppercase mb-3" style="color:rgba(212,168,67,0.65); font-family:'Lato',sans-serif;">the moment</p>
+  <h1 class="text-4xl md:text-5xl mb-2" style="font-family:'Playfair Display',serif; color:#f5e6c8;">Tie his Rakhi. 🪢</h1>
+  <p class="text-base italic mb-6" style="font-family:'Playfair Display',serif; color:rgba(245,230,200,0.55);">
+    Close your eyes for a second, Rupesh Anna.<br>Pretend I'm right there with you.
+  </p>
+</div>
+
+<!-- ── HANDS STAGE ── -->
+<div id="hands-wrap">
+
+  <!-- ══════════════════════════════════════════
+       MAN'S HAND — realistic, palm facing up
+       warm brown skin, visible wrist, relaxed fingers
+       ══════════════════════════════════════════ -->
+  <svg id="mans-hand" viewBox="0 0 280 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="mg1" cx="50%" cy="45%" r="55%">
+        <stop offset="0%"   stop-color="#c8956c"/>
+        <stop offset="60%"  stop-color="#b07848"/>
+        <stop offset="100%" stop-color="#8a5c30"/>
+      </radialGradient>
+      <radialGradient id="mg2" cx="50%" cy="30%" r="60%">
+        <stop offset="0%"   stop-color="#c8956c"/>
+        <stop offset="100%" stop-color="#9a6438"/>
+      </radialGradient>
+      <linearGradient id="marm" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#b07848"/>
+        <stop offset="100%" stop-color="#8a5c30"/>
+      </linearGradient>
+      <filter id="msoft">
+        <feGaussianBlur stdDeviation="1.2" result="blur"/>
+        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+      </filter>
+    </defs>
+
+    <!-- forearm -->
+    <path d="M 82 320 L 82 220 Q 82 205 100 202 L 180 202 Q 198 205 198 220 L 198 320 Z"
+          fill="url(#marm)" stroke="#7a4e28" stroke-width="1"/>
+    <!-- wrist bone bump -->
+    <ellipse cx="86"  cy="215" rx="9" ry="6" fill="rgba(200,149,108,0.4)"/>
+    <ellipse cx="194" cy="215" rx="9" ry="6" fill="rgba(200,149,108,0.4)"/>
+    <!-- wrist crease lines -->
+    <path d="M 84 222 Q 140 232 196 222" stroke="rgba(0,0,0,0.14)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    <path d="M 86 230 Q 140 238 194 230" stroke="rgba(0,0,0,0.08)" stroke-width="1"   fill="none" stroke-linecap="round"/>
+
+    <!-- palm body -->
+    <ellipse cx="140" cy="188" rx="70" ry="76" fill="url(#mg1)" stroke="#8a5c30" stroke-width="1"/>
+    <!-- palm inner lighter area -->
+    <ellipse cx="140" cy="195" rx="42" ry="48" fill="rgba(210,160,110,0.25)"/>
+    <!-- palm lines -->
+    <path d="M 96 172 Q 140 158 184 172" stroke="rgba(80,40,10,0.18)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <path d="M 92 192 Q 140 178 188 192" stroke="rgba(80,40,10,0.14)" stroke-width="1"   fill="none" stroke-linecap="round"/>
+    <path d="M 110 210 Q 140 202 170 210" stroke="rgba(80,40,10,0.10)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+    <!-- life line -->
+    <path d="M 108 155 Q 118 185 112 215" stroke="rgba(80,40,10,0.12)" stroke-width="1" fill="none" stroke-linecap="round"/>
+
+    <!-- THUMB -->
+    <path d="M 72 175 Q 58 160 62 140 Q 66 118 80 122 Q 94 126 92 148 Q 90 168 82 178 Z"
+          fill="url(#mg2)" stroke="#8a5c30" stroke-width="1"/>
+    <ellipse cx="74" cy="148" rx="6" ry="4" fill="rgba(200,149,108,0.3)" transform="rotate(-20 74 148)"/>
+
+    <!-- INDEX FINGER -->
+    <path d="M 100 158 Q 98 120 100 90 Q 102 68 112 66 Q 122 64 124 86 Q 126 110 124 158 Z"
+          fill="url(#mg2)" stroke="#8a5c30" stroke-width="1"/>
+    <ellipse cx="112" cy="80"  rx="8" ry="5" fill="rgba(200,149,108,0.25)"/>
+    <ellipse cx="112" cy="104" rx="7" ry="3" fill="rgba(0,0,0,0.07)"/>
+    <ellipse cx="112" cy="128" rx="7" ry="3" fill="rgba(0,0,0,0.07)"/>
+
+    <!-- MIDDLE FINGER -->
+    <path d="M 122 155 Q 120 112 122 78 Q 124 54 136 52 Q 148 50 150 74 Q 152 108 150 155 Z"
+          fill="url(#mg2)" stroke="#8a5c30" stroke-width="1"/>
+    <ellipse cx="136" cy="66"  rx="9" ry="5" fill="rgba(200,149,108,0.25)"/>
+    <ellipse cx="136" cy="92"  rx="8" ry="3" fill="rgba(0,0,0,0.07)"/>
+    <ellipse cx="136" cy="118" rx="8" ry="3" fill="rgba(0,0,0,0.07)"/>
+
+    <!-- RING FINGER -->
+    <path d="M 148 155 Q 146 114 148 82 Q 150 60 161 58 Q 172 56 174 78 Q 176 110 174 155 Z"
+          fill="url(#mg2)" stroke="#8a5c30" stroke-width="1"/>
+    <ellipse cx="161" cy="72"  rx="8" ry="5" fill="rgba(200,149,108,0.25)"/>
+    <ellipse cx="161" cy="98"  rx="7" ry="3" fill="rgba(0,0,0,0.07)"/>
+    <ellipse cx="161" cy="122" rx="7" ry="3" fill="rgba(0,0,0,0.07)"/>
+
+    <!-- PINKY -->
+    <path d="M 172 158 Q 170 124 172 98 Q 174 80 183 78 Q 192 76 194 94 Q 196 118 194 158 Z"
+          fill="url(#mg2)" stroke="#8a5c30" stroke-width="1"/>
+    <ellipse cx="183" cy="90"  rx="7" ry="4" fill="rgba(200,149,108,0.25)"/>
+    <ellipse cx="183" cy="112" rx="6" ry="3" fill="rgba(0,0,0,0.07)"/>
+
+    <!-- knuckle highlights -->
+    <ellipse cx="112" cy="158" rx="10" ry="4" fill="rgba(200,149,108,0.3)"/>
+    <ellipse cx="136" cy="155" rx="10" ry="4" fill="rgba(200,149,108,0.3)"/>
+    <ellipse cx="161" cy="155" rx="9"  ry="4" fill="rgba(200,149,108,0.3)"/>
+    <ellipse cx="183" cy="158" rx="8"  ry="3" fill="rgba(200,149,108,0.3)"/>
+
+    <!-- overall highlight sheen -->
+    <ellipse cx="130" cy="150" rx="55" ry="40" fill="rgba(255,220,170,0.06)"/>
+  </svg>
+
+  <!-- ══════════════════════════════════════════
+       GIRL'S HAND — elegant, side approach
+       lighter skin, deep rose nails, gold bangles,
+       rich mehendi, holding rakhi
+       ══════════════════════════════════════════ -->
+  <svg id="girls-hand" viewBox="0 0 280 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="fg1" cx="50%" cy="40%" r="58%">
+        <stop offset="0%"   stop-color="#e8b090"/>
+        <stop offset="55%"  stop-color="#d4956e"/>
+        <stop offset="100%" stop-color="#a86840"/>
+      </radialGradient>
+      <radialGradient id="fg2" cx="50%" cy="25%" r="62%">
+        <stop offset="0%"   stop-color="#eab898"/>
+        <stop offset="100%" stop-color="#c07858"/>
+      </radialGradient>
+      <linearGradient id="farm" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#d4956e"/>
+        <stop offset="100%" stop-color="#a86840"/>
+      </linearGradient>
+      <!-- bangle gradients -->
+      <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%"   stop-color="#f3cd6e"/>
+        <stop offset="50%"  stop-color="#d4a843"/>
+        <stop offset="100%" stop-color="#f3cd6e"/>
+      </linearGradient>
+      <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%"   stop-color="#e06080"/>
+        <stop offset="50%"  stop-color="#c0445a"/>
+        <stop offset="100%" stop-color="#e06080"/>
+      </linearGradient>
+      <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%"   stop-color="#f09050"/>
+        <stop offset="50%"  stop-color="#e8732a"/>
+        <stop offset="100%" stop-color="#f09050"/>
+      </linearGradient>
+      <!-- nail gradient -->
+      <linearGradient id="ng1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#d04070"/>
+        <stop offset="100%" stop-color="#901840"/>
+      </linearGradient>
+      <!-- rakhi gradient -->
+      <radialGradient id="rg1" cx="50%" cy="50%" r="55%">
+        <stop offset="0%"   stop-color="#ff9050"/>
+        <stop offset="60%"  stop-color="#e8732a"/>
+        <stop offset="100%" stop-color="#c05010"/>
+      </radialGradient>
+    </defs>
+
+    <!-- forearm -->
+    <path d="M 78 320 L 78 228 Q 78 212 96 208 L 184 208 Q 202 212 202 228 L 202 320 Z"
+          fill="url(#farm)" stroke="#906030" stroke-width="1"/>
+
+    <!-- BANGLES — stacked, glowing -->
+    <!-- bangle 4 (bottom, gold dashed) -->
+    <ellipse cx="140" cy="308" rx="58" ry="10" fill="none" stroke="url(#bg1)" stroke-width="2.5" stroke-dasharray="5 3" opacity="0.8"/>
+    <!-- bangle 3 orange -->
+    <ellipse cx="140" cy="296" rx="58" ry="10" fill="none" stroke="url(#bg3)" stroke-width="3.5"/>
+    <ellipse cx="140" cy="296" rx="58" ry="10" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+    <!-- bangle 2 rose -->
+    <ellipse cx="140" cy="283" rx="58" ry="10" fill="none" stroke="url(#bg2)" stroke-width="4"/>
+    <ellipse cx="140" cy="283" rx="58" ry="10" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>
+    <!-- bangle 1 gold (top, thickest) -->
+    <ellipse cx="140" cy="270" rx="58" ry="10" fill="none" stroke="url(#bg1)" stroke-width="5"/>
+    <ellipse cx="140" cy="270" rx="58" ry="10" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+    <!-- bangle glow -->
+    <ellipse cx="140" cy="270" rx="58" ry="10" fill="none" stroke="rgba(212,168,67,0.25)" stroke-width="10"/>
+
+    <!-- wrist crease -->
+    <path d="M 82 232 Q 140 242 198 232" stroke="rgba(0,0,0,0.12)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+    <!-- palm body -->
+    <ellipse cx="140" cy="185" rx="66" ry="72" fill="url(#fg1)" stroke="#906030" stroke-width="1"/>
+    <!-- palm inner lighter -->
+    <ellipse cx="140" cy="192" rx="40" ry="46" fill="rgba(240,190,150,0.2)"/>
+
+    <!-- MEHENDI PATTERN — detailed -->
+    <!-- outer ring -->
+    <circle cx="140" cy="185" r="28" fill="none" stroke="#6a2e08" stroke-width="1.4" opacity="0.55"/>
+    <!-- inner ring -->
+    <circle cx="140" cy="185" r="17" fill="none" stroke="#6a2e08" stroke-width="1.1" opacity="0.48"/>
+    <!-- center dot -->
+    <circle cx="140" cy="185" r="5"  fill="#6a2e08" opacity="0.42"/>
+    <!-- petal dots around outer ring -->
+    <circle cx="140" cy="157" r="3.5" fill="#6a2e08" opacity="0.42"/>
+    <circle cx="156" cy="161" r="3"   fill="#6a2e08" opacity="0.38"/>
+    <circle cx="164" cy="175" r="3"   fill="#6a2e08" opacity="0.38"/>
+    <circle cx="164" cy="195" r="3"   fill="#6a2e08" opacity="0.38"/>
+    <circle cx="156" cy="209" r="3"   fill="#6a2e08" opacity="0.38"/>
+    <circle cx="140" cy="213" r="3.5" fill="#6a2e08" opacity="0.42"/>
+    <circle cx="124" cy="209" r="3"   fill="#6a2e08" opacity="0.38"/>
+    <circle cx="116" cy="195" r="3"   fill="#6a2e08" opacity="0.38"/>
+    <circle cx="116" cy="175" r="3"   fill="#6a2e08" opacity="0.38"/>
+    <circle cx="124" cy="161" r="3"   fill="#6a2e08" opacity="0.38"/>
+    <!-- curved lines -->
+    <path d="M 114 172 Q 140 156 166 172" stroke="#6a2e08" stroke-width="1" fill="none" opacity="0.32" stroke-linecap="round"/>
+    <path d="M 114 198 Q 140 214 166 198" stroke="#6a2e08" stroke-width="1" fill="none" opacity="0.32" stroke-linecap="round"/>
+    <!-- finger base dots -->
+    <circle cx="112" cy="148" r="2.5" fill="#6a2e08" opacity="0.35"/>
+    <circle cx="136" cy="142" r="2.5" fill="#6a2e08" opacity="0.35"/>
+    <circle cx="158" cy="146" r="2.5" fill="#6a2e08" opacity="0.35"/>
+
+    <!-- THUMB -->
+    <path d="M 76 178 Q 62 162 66 142 Q 70 120 84 124 Q 98 128 96 150 Q 94 170 84 180 Z"
+          fill="url(#fg2)" stroke="#906030" stroke-width="1"/>
+
+    <!-- INDEX FINGER -->
+    <path d="M 104 155 Q 102 116 104 86 Q 106 64 116 62 Q 126 60 128 82 Q 130 108 128 155 Z"
+          fill="url(#fg2)" stroke="#906030" stroke-width="1"/>
+    <!-- nail -->
+    <path d="M 106 72 Q 116 62 126 72 Q 128 80 116 82 Q 104 80 106 72 Z" fill="url(#ng1)"/>
+    <ellipse cx="114" cy="72" rx="4" ry="2.5" fill="rgba(255,255,255,0.45)"/>
+    <!-- knuckle lines -->
+    <path d="M 105 102 Q 116 98 127 102" stroke="rgba(0,0,0,0.1)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+    <path d="M 105 124 Q 116 120 127 124" stroke="rgba(0,0,0,0.1)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+
+    <!-- MIDDLE FINGER -->
+    <path d="M 128 152 Q 126 108 128 74 Q 130 50 142 48 Q 154 46 156 70 Q 158 106 156 152 Z"
+          fill="url(#fg2)" stroke="#906030" stroke-width="1"/>
+    <path d="M 130 58 Q 142 48 154 58 Q 156 67 142 69 Q 128 67 130 58 Z" fill="url(#ng1)"/>
+    <ellipse cx="140" cy="58" rx="4.5" ry="2.5" fill="rgba(255,255,255,0.45)"/>
+    <path d="M 129 90  Q 142 86 155 90"  stroke="rgba(0,0,0,0.1)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+    <path d="M 129 114 Q 142 110 155 114" stroke="rgba(0,0,0,0.1)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+
+    <!-- RING FINGER -->
+    <path d="M 154 153 Q 152 112 154 80 Q 156 58 166 56 Q 176 54 178 76 Q 180 108 178 153 Z"
+          fill="url(#fg2)" stroke="#906030" stroke-width="1"/>
+    <path d="M 156 66 Q 166 56 176 66 Q 178 75 166 77 Q 154 75 156 66 Z" fill="url(#ng1)"/>
+    <ellipse cx="165" cy="66" rx="4" ry="2.5" fill="rgba(255,255,255,0.45)"/>
+    <path d="M 155 96  Q 166 92 177 96"  stroke="rgba(0,0,0,0.1)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+    <path d="M 155 120 Q 166 116 177 120" stroke="rgba(0,0,0,0.1)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+
+    <!-- PINKY -->
+    <path d="M 176 156 Q 174 122 176 96 Q 178 78 186 76 Q 194 74 196 92 Q 198 116 196 156 Z"
+          fill="url(#fg2)" stroke="#906030" stroke-width="1"/>
+    <path d="M 178 84 Q 186 76 194 84 Q 196 92 186 93 Q 176 92 178 84 Z" fill="url(#ng1)"/>
+    <ellipse cx="185" cy="84" rx="3.5" ry="2" fill="rgba(255,255,255,0.45)"/>
+    <path d="M 177 108 Q 186 104 195 108" stroke="rgba(0,0,0,0.1)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+
+    <!-- knuckle highlights -->
+    <ellipse cx="116" cy="154" rx="11" ry="4" fill="rgba(230,180,140,0.28)"/>
+    <ellipse cx="142" cy="152" rx="11" ry="4" fill="rgba(230,180,140,0.28)"/>
+    <ellipse cx="166" cy="153" rx="10" ry="4" fill="rgba(230,180,140,0.28)"/>
+    <ellipse cx="186" cy="156" rx="8"  ry="3" fill="rgba(230,180,140,0.28)"/>
+
+    <!-- overall sheen -->
+    <ellipse cx="132" cy="148" rx="52" ry="38" fill="rgba(255,220,180,0.07)"/>
+
+    <!-- RAKHI held at fingertips (between thumb and index) -->
+    <!-- thread tails -->
+    <path d="M 88 128 Q 94 148 90 170" stroke="#d4a843" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M 88 128 Q 82 148 86 170" stroke="#c0445a" stroke-width="2"   stroke-linecap="round" fill="none"/>
+    <path d="M 88 128 Q 88 152 88 172" stroke="#e8732a" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.6"/>
+    <!-- rakhi charm body -->
+    <circle cx="88" cy="114" r="20" fill="url(#rg1)"/>
+    <!-- inner gold circle -->
+    <circle cx="88" cy="114" r="9"  fill="#f3cd6e"/>
+    <circle cx="88" cy="114" r="4"  fill="#e8732a"/>
+    <!-- petal circles -->
+    <circle cx="88" cy="94"  r="7" fill="#c0445a"/>
+    <circle cx="102" cy="98" r="7" fill="#c0445a"/>
+    <circle cx="108" cy="114" r="7" fill="#c0445a"/>
+    <circle cx="102" cy="130" r="7" fill="#c0445a"/>
+    <circle cx="88"  cy="134" r="7" fill="#c0445a"/>
+    <circle cx="74"  cy="130" r="7" fill="#c0445a"/>
+    <circle cx="68"  cy="114" r="7" fill="#c0445a"/>
+    <circle cx="74"  cy="98"  r="7" fill="#c0445a"/>
+    <!-- petal shine -->
+    <circle cx="86"  cy="96"  r="2.5" fill="rgba(255,255,255,0.5)"/>
+    <!-- charm shine -->
+    <ellipse cx="82" cy="108" rx="5" ry="3.5" fill="rgba(255,255,255,0.35)" transform="rotate(-30 82 108)"/>
+  </svg>
+
+  <!-- RAKHI TIED ON WRIST -->
+  <svg id="rakhi-tied" viewBox="0 0 64 64" fill="none">
+    <defs>
+      <radialGradient id="rt1" cx="50%" cy="50%" r="55%">
+        <stop offset="0%"   stop-color="#ff9050"/>
+        <stop offset="100%" stop-color="#c05010"/>
+      </radialGradient>
+    </defs>
+    <circle cx="32" cy="32" r="18" fill="url(#rt1)"/>
+    <circle cx="32" cy="32" r="8"  fill="#f3cd6e"/>
+    <circle cx="32" cy="32" r="3.5" fill="#e8732a"/>
+    <circle cx="32" cy="14" r="7" fill="#c0445a"/>
+    <circle cx="45" cy="19" r="7" fill="#c0445a"/>
+    <circle cx="50" cy="32" r="7" fill="#c0445a"/>
+    <circle cx="45" cy="45" r="7" fill="#c0445a"/>
+    <circle cx="32" cy="50" r="7" fill="#c0445a"/>
+    <circle cx="19" cy="45" r="7" fill="#c0445a"/>
+    <circle cx="14" cy="32" r="7" fill="#c0445a"/>
+    <circle cx="19" cy="19" r="7" fill="#c0445a"/>
+    <ellipse cx="28" cy="28" rx="4" ry="3" fill="rgba(255,255,255,0.38)" transform="rotate(-30 28 28)"/>
+  </svg>
+
+  <!-- THREAD ON WRIST -->
+  <svg id="thread-wrist" viewBox="0 0 100 22" fill="none">
+    <path d="M0 11 Q25 3 50 11 Q75 19 100 11"  stroke="#d4a843" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M0 15 Q25 7 50 15 Q75 23 100 15"  stroke="#c0445a" stroke-width="2"   stroke-linecap="round" opacity="0.55"/>
+    <path d="M0 8  Q25 1 50 8  Q75 15 100 8"   stroke="#f3cd6e" stroke-width="1"   stroke-linecap="round" opacity="0.35"/>
+  </svg>
+
+</div>
+<!-- end hands-wrap -->
+
+<!-- tie button -->
+<div class="flex flex-col items-center mt-4 gap-2">
+  <button id="tie-btn" onclick="startCeremony()">🪢 &nbsp; Tie the Rakhi</button>
+  <p id="hint" class="text-xs tracking-widest uppercase" style="color:rgba(245,230,200,0.28); transition:opacity 0.4s;">tap to begin the ceremony</p>
+</div>
+
+<!-- emotional message -->
+<div id="emo-msg" class="fade-up text-center mt-10 px-4" style="max-width:500px;">
+  <div class="thread-line mb-6"></div>
+  <p class="text-3xl mb-3" style="font-family:'Caveat',cursive; color:rgba(245,230,200,0.95);">There. ❤️</p>
+  <p class="text-xl leading-relaxed" style="font-family:'Caveat',cursive; color:rgba(245,230,200,0.7);">
+    I know it's not the same as being there.<br>
+    But for a second — pretend I was.
+  </p>
+  <p class="text-xs tracking-widest uppercase mt-5" style="color:rgba(245,230,200,0.22);">
+    tied with love &nbsp;·&nbsp; from Chennai 🧡 to Vellore
+  </p>
+</div>
+
+<!-- ending -->
+<div id="ending" class="fade-up text-center mt-12 pt-8 px-4 w-full" style="max-width:560px; border-top:1px solid rgba(245,230,200,0.07);">
+  <h2 class="text-4xl leading-snug mb-5" style="font-family:'Playfair Display',serif; color:#f5e6c8;">
+    Different cities.<br>Different lives.<br>
+    <span style="background:linear-gradient(90deg,#d4a843,#e8732a); -webkit-background-clip:text; background-clip:text; color:transparent;">
+      One bond.
+    </span>
+  </h2>
+  <p class="text-xl leading-loose mb-8" style="font-family:'Caveat',cursive; color:rgba(245,230,200,0.75);">
+    Happy Raksha Bandhan, Rupesh Anna. 🧡<br><br>
+    Not my brother by blood.<br>
+    But my brother by heart.<br><br>
+    Until I can tie it for real —<br>
+    this one was tied with everything I have.
+  </p>
+  <!-- photo slot -->
+  <div class="mx-auto mb-6 flex flex-col items-center justify-center gap-2 rounded-2xl"
+       style="width:100%; max-width:420px; aspect-ratio:3/2;
+              border:1px dashed rgba(212,168,67,0.3);
+              background:rgba(212,168,67,0.04);">
+    <span style="font-size:1.8rem;">📷</span>
+    <span class="text-xs tracking-widest uppercase" style="color:rgba(212,168,67,0.38);">a photo of the two of you</span>
+  </div>
+  <!-- names -->
+  <div class="flex items-center justify-center gap-4 flex-wrap mb-6">
+    <span style="font-family:'Playfair Display',serif; font-size:1.05rem; color:#f5e6c8;">Swarna</span>
+    <span style="width:44px; height:2px; background:linear-gradient(90deg,#c0445a,#d4a843); border-radius:2px; opacity:0.65; display:inline-block;"></span>
+    <span style="font-family:'Playfair Display',serif; font-size:1.05rem; color:#f5e6c8;">Rupesh Anna</span>
+  </div>
+  <p class="text-xs tracking-widest uppercase mb-2" style="color:rgba(245,230,200,0.18);">Chennai &middot; Vellore &middot; always</p>
+  <p class="text-xs" style="color:rgba(245,230,200,0.12); letter-spacing:0.08em;">made with a full heart, by Swarna 🧡</p>
+</div>
+
+<script>
+var done = false;
+
+function startCeremony() {
+  if (done) return;
+  done = true;
+
+  var btn  = document.getElementById('tie-btn');
+  var hint = document.getElementById('hint');
+  btn.disabled = true;
+  hint.style.opacity = '0';
+
+  var girl = document.getElementById('girls-hand');
+  var mans = document.getElementById('mans-hand');
+
+  // man's wrist glows
+  mans.classList.add('glowing');
+
+  // girl's hand glides in
+  girl.classList.add('approach');
+
+  // rakhi + thread appear
+  setTimeout(function () {
+    document.getElementById('rakhi-tied').classList.add('show');
+    document.getElementById('thread-wrist').classList.add('show');
+    spawnSparkles();
+  }, 2200);
+
+  // girl's hand retreats
+  setTimeout(function () {
+    girl.classList.remove('approach');
+    girl.classList.add('retreat');
+  }, 3600);
+
+  // emotional message
+  setTimeout(function () {
+    document.getElementById('emo-msg').classList.add('show');
+  }, 4800);
+
+  // ending
+  setTimeout(function () {
+    document.getElementById('ending').classList.add('show');
+  }, 6200);
+}
+
+function spawnSparkles() {
+  var wrap = document.getElementById('hands-wrap');
+  var items = [
+    { e: '✨', t: '16%', l: '38%' }, { e: '🧡', t: '8%',  l: '50%' },
+    { e: '💛', t: '20%', l: '60%' }, { e: '✨', t: '6%',  l: '44%' },
+    { e: '💫', t: '26%', l: '54%' }, { e: '🌸', t: '12%', l: '34%' },
+    { e: '🧡', t: '18%', l: '66%' }, { e: '✨', t: '4%',  l: '58%' }
+  ];
+  items.forEach(function (item, i) {
+    setTimeout(function () {
+      var s = document.createElement('div');
+      s.className = 'sparkle';
+      s.textContent = item.e;
+      s.style.top  = item.t;
+      s.style.left = item.l;
+      s.style.animationDelay = (i * 0.06) + 's';
+      wrap.appendChild(s);
+      setTimeout(function () { s.remove(); }, 1800);
+    }, i * 85);
+  });
+}
+</script>
+
+</body>
+</html>
