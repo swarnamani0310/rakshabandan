@@ -1,8 +1,9 @@
 import streamlit as st
 import streamlit.components.v1 as components
-import base64, os
+import base64, osfrom pathlib import Path
 
-PHOTO = "pics/love.png"
+BASE_DIR = Path(__file__).resolve().parent.parent
+PHOTO = BASE_DIR / "pics" / "love.png"
 
 def render(go):
     st.markdown('<div class="festive-strip"></div>', unsafe_allow_html=True)
